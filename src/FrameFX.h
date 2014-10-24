@@ -99,7 +99,22 @@ frameFX_flipHorizontal
 { GBitmap *bitMap = graphics_capture_frame_buffer(	gCtx ) ;
   if (bitMap == NULL) return ;
 
-  // TODO: everything.
- 
+  int *frameBufferBase = (int *)bitMap->addr ;
+
+  uint8_t  rowSpan = bitMap->row_size_bytes >> 2 ;
+  uint16_t colSpan = (bitMap->bounds.size.h - 1) * rowSpan ;
+
+  // Iterate word columns.
+  for( uint8_t iCol = 0  ;  iCol < rowSpan  ;  ++iCol )
+  { int *high = frameBufferBase + iCol ;
+    int *low  = high + colSpan ;
+   
+    while(high < low)
+    { int swap = *high ; *high = *low ; *low = swap ;
+      high += rowSpan ;
+      low  -= rowSpan ;
+    }
+  }
+
   graphics_release_frame_buffer( gCtx, bitMap ) ;
 }

@@ -30,6 +30,9 @@ contentLayer_update_proc
                     , NULL
                     )	;
 
+  if ( (++updateCount / 50) % 2 == 0 )
+    frameFX_flipHorizontal( gCtx ) ;
+
   static AccelData ad ;
   accel_service_peek( &ad ) ;
 
