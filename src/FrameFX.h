@@ -6,7 +6,7 @@
 
 
 void
-frameFX_fillRand
+frameFX_fillRand    // Fill with random generated patterns
 ( GContext *gCtx )
 { GBitmap *bitMap = graphics_capture_frame_buffer(	gCtx ) ;
   if (bitMap == NULL) return ;
@@ -21,7 +21,7 @@ frameFX_fillRand
 
 void
 frameFX_rotateVertical
-( GContext  *gCtx
+( GContext *gCtx
 , int16_t   rotation    // negative is up, positive is down.
 )
 { GBitmap *bitMap = graphics_capture_frame_buffer(	gCtx ) ;
@@ -69,7 +69,9 @@ frameFX_rotateVertical
 
 void
 frameFX_rotateHorizontal
-( GContext *gCtx )
+( GContext *gCtx
+, int16_t   rotation    // negative is left, positive is right.
+)
 { GBitmap *bitMap = graphics_capture_frame_buffer(	gCtx ) ;
   if (bitMap == NULL) return ;
 
