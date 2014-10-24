@@ -1,0 +1,19 @@
+{
+    "appKeys": {},
+    "capabilities": [
+        ""
+    ],
+    "companyName": "Afonso Santos",
+    "longName": "FrameFX",
+    "projectType": "native",
+    "resources": {
+        "media": []
+    },
+    "shortName": "FrameFX",
+    "uuid": "559d9d2e-c0a8-4fa0-97e0-6fd548287fa0",
+    "versionCode": 1,
+    "versionLabel": "1.0",
+    "watchapp": {
+        "watchface": false
+    }
+}
