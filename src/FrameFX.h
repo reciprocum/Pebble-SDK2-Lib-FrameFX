@@ -6,7 +6,21 @@
 
 
 void
-frameFX_fillRand    // Fill with random generated patterns
+frameFX_fillRand    // Fill with random generated patterns, Half-word wise variant because rand() only generates 31 bits of random data at a time.
+( GContext *gCtx )
+{ GBitmap *bitMap = graphics_capture_frame_buffer(	gCtx ) ;
+  if (bitMap == NULL) return ;
+
+  uint16_t *ptrFrameBufferHalfWord = (uint16_t *)bitMap->addr ;
+  uint16_t numHalfWords = bitMap->bounds.size.h * (bitMap->row_size_bytes >> 1) ;
+  for( uint16_t iHalfWord = 0  ;  iHalfWord < numHalfWords  ;  ++iHalfWord ) *ptrFrameBufferHalfWord++ = rand( ) ;
+
+  graphics_release_frame_buffer( gCtx, bitMap ) ;
+}
+
+
+void
+frameFX_fillRandW    // Fill with random generated patterns, Word wise variant.
 ( GContext *gCtx )
 { GBitmap *bitMap = graphics_capture_frame_buffer(	gCtx ) ;
   if (bitMap == NULL) return ;
