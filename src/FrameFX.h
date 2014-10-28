@@ -5,36 +5,20 @@
 #include <pebble.h>
 
 
-void
-frameFX_fillRand    // Fill with random generated patterns.
-( GContext *gCtx )
-;
+// Fill with random generated patterns.
+void frameFX_fillRand( GContext *gCtx ) ;
 
-void
-frameFX_invert
-( GContext *gCtx )
-;
+// Black pixels turn white, white ones turn black.
+void frameFX_invert( GContext *gCtx ) ;
 
-void
-frameFX_rotateVertical
-( GContext *gCtx
-, int16_t   rotation    // negative is up, positive is down.
-)
-;
+// Mirror image.
+void frameFX_flipVertical( GContext *gCtx ) ;
 
-void
-frameFX_rotateHorizontal    // NOT YET fully implemented.
-( GContext *gCtx
-, int16_t   rotation    // negative is left, positive is right.
-)
-;
+// Image is turned upside down.
+void frameFX_flipHorizontal( GContext *gCtx ) ;
 
-void
-frameFX_flipVertical    // Bytewise version
-( GContext *gCtx )
-;
+// Negative rotation is up, positive is down.
+void frameFX_rotateVertical( GContext *gCtx, int16_t rotation ) ;
 
-void
-frameFX_flipHorizontal
-( GContext *gCtx )
-;
+// Negative rotation is left, positive is right.
+void frameFX_rotateHorizontal( GContext *gCtx, int16_t rotation ) ;     // NOT YET fully implemented.
