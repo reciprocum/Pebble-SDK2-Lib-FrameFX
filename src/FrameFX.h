@@ -20,14 +20,18 @@ frameFX_fillRand    // Fill with random generated patterns, Half-word wise varia
 
 
 void
-frameFX_fillRandW    // Fill with random generated patterns, Word wise variant.
+frameFX_invert
 ( GContext *gCtx )
 { GBitmap *bitMap = graphics_capture_frame_buffer(	gCtx ) ;
   if (bitMap == NULL) return ;
 
   uint32_t *ptrFrameBufferWord = (uint32_t *)bitMap->addr ;
   uint16_t numWords = bitMap->bounds.size.h * (bitMap->row_size_bytes >> 2) ;
-  for( uint16_t i = 0  ;  i < numWords  ;  ++i ) *ptrFrameBufferWord++ = rand( ) ;
+
+  for( uint16_t iWord = 0  ;  iWord < numWords  ;  ++iWord )
+  { uint32_t frameBufferWord = *ptrFrameBufferWord ;
+    *ptrFrameBufferWord++ = ~frameBufferWord ;
+  }
 
   graphics_release_frame_buffer( gCtx, bitMap ) ;
 }
@@ -105,6 +109,18 @@ frameFX_rotateHorizontal    // NOT YET fully implemented.
   uint16_t numWords = bitMap->bounds.size.h * (bitMap->row_size_bytes >> 2) ;
 
   // TODO: the bulk bit right shifting with rotation of the right outflowing bits.
+  /*
+  for( uint16_t i = 0  ;  i < numWords  ;  ++i )
+  { uint32_t frameBufferWord = *ptrFrameBufferWord ;
+
+    __asm( "ror %[theWord], %[theWord], %[rotateBy]"    // Rotate frame buffer word right by rotation bits.
+         : [theWord]  "+r" (frameBufferWord)            // Output/Input: the word to be rotated.
+         : [rotateBy] "r"  (absRotation)                // Input       : the rotation ammount.
+         ) ;
+
+    *ptrFrameBufferWord++ = frameBufferWord ;
+  }
+  */
 
   graphics_release_frame_buffer( gCtx, bitMap ) ;
 }
@@ -116,7 +132,7 @@ frameFX_flipVertical    // Bytewise version
 { GBitmap *bitMap = graphics_capture_frame_buffer(	gCtx ) ;
   if (bitMap == NULL) return ;
 
-  uint16_t numRows = bitMap->bounds.size.h ;
+  uint16_t numRows      = bitMap->bounds.size.h ;
   uint16_t rowSpanBytes = bitMap->row_size_bytes ;
 
   uint8_t *ptrLeftmostByte = (uint8_t *)bitMap->addr - 1 ;    // The "-1" is required due to a bug on the bitMap->addr value that points 1 byte too far inside the frame buffer.
@@ -127,22 +143,23 @@ frameFX_flipVertical    // Bytewise version
     uint8_t *ptrRightByte = ptrLeftmostByte + rowSpanBytes - 1 ;
 
     while (ptrLeftByte <= ptrRightByte)
-    { uint8_t leftByte  = *ptrLeftByte ;                  // Read the original content.
+    { uint8_t leftByte  = *ptrLeftByte ;                  // Read the original frame buffer bit content.
       uint8_t rightByte = *ptrRightByte ;
 
       // Revert left byte bits.
-      __asm( "rbit %[reverteByte], %[reverteByte]          \n"  // The rotation instruction is only available as a 32bit word variant.
-             "mov  %[reverteByte], %[reverteByte], ror #24 \n"  // Bring the leftmost 8 bits to the rightmost 8 bit position.
-           : [reverteByte] "+r" (leftByte)                      // Output/Input: the byte to be reverted.
+      __asm( "rbit %[theByte], %[theByte]          \n"  // The rotation instruction is only available as a 32 bit word variant.
+             "mov  %[theByte], %[theByte], ror #24 \n"  // Bring the leftmost 8 bits (of the rotation result) to the rightmost 8 bit position.
+           : [theByte] "+r" (leftByte)                  // Output/Input: the byte to be reverted.
            ) ;
 
       // Revert right byte bits.
-      __asm( "rbit %[reverteByte], %[reverteByte]          \n"  // The rotation instruction is only available as a 32bit word variant.
-             "mov  %[reverteByte], %[reverteByte], ror #24 \n"  // Bring the leftmost 8 bits to the rightmost 8 bit position.
-           : [reverteByte] "+r" (rightByte)                     // Output/Input: the byte to be reverted.
+      __asm( "rbit %[theByte], %[theByte]          \n"  // The rotation instruction is only available as a 32 bit word variant.
+             "mov  %[theByte], %[theByte], ror #24 \n"  // Bring the leftmost 8 bits (of the rotation result) to the rightmost 8 bit position.
+           : [theByte] "+r" (rightByte)                 // Output/Input: the byte to be reverted.
            ) ;
 
-      *ptrLeftByte++  = rightByte ;                        // Swap store the reverted content.
+      // Swap store the reverted content and move the left/right pointers closer towards each other.
+      *ptrLeftByte++  = rightByte ;
       *ptrRightByte-- = leftByte  ;
     }
 
