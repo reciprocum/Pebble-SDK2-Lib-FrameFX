@@ -30,14 +30,29 @@ contentLayer_update_proc
                     , NULL
                     )	;
 
-  if ( (++updateCount / 50) % 2 == 0 )
-    frameFX_flipHorizontal( gCtx ) ;
-
   static AccelData ad ;
   accel_service_peek( &ad ) ;
 
-  if ( !ad.did_vibrate )
-    frameFX_rotateVertical( gCtx, -ad.y / 6 ) ;
+  switch ( (++updateCount / 100) % 4 )
+  { case 0:
+      if ( !ad.did_vibrate )
+      { frameFX_rotateVertical( gCtx, -ad.y / 6 ) ;
+//      frameFX_rotateHorizontal( gCtx, -ad.x / 7 ) ;    // NOT YET fully implemented.
+      }
+      break ;
+
+    case 1:
+      frameFX_flipHorizontal( gCtx ) ;
+      break ;
+
+    case 2:
+      frameFX_flipVertical( gCtx ) ;
+      break ;
+
+    case 3:
+      frameFX_fillRand( gCtx ) ;
+      break ;
+  }
 }
 
 
