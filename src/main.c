@@ -33,11 +33,11 @@ contentLayer_update_proc
   static AccelData ad ;
   accel_service_peek( &ad ) ;
 
-  switch ( (++updateCount / 100) % 5 )    // Every 100 frames/updates swich wich frameFX function is being demoed.
+  switch ( (++updateCount / 100) % 6 )    // Every 100 frames/updates swich wich frameFX function is being demoed.
   { case 0:
       if ( !ad.did_vibrate )
       { frameFX_rotateVertical( gCtx, -ad.y / 6 ) ;
-//      frameFX_rotateHorizontal( gCtx, -ad.x / 7 ) ;    // NOT YET fully implemented.
+        frameFX_rotateHorizontal( gCtx, ad.x / 7 ) ;
       }
       break ;
 
@@ -55,6 +55,10 @@ contentLayer_update_proc
       break ;
 
     case 4:
+      frameFX_rotateHorizontal( gCtx, -updateCount ) ;
+      break ;
+
+    case 5:
       frameFX_fillRand( gCtx ) ;
       break ;
   }
