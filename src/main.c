@@ -35,10 +35,7 @@ contentLayer_update_proc
 
   switch ( (++updateCount / 100) % 6 )    // Every 100 frames/updates swich wich frameFX function is being demoed.
   { case 0:
-      if ( !ad.did_vibrate )
-      { frameFX_rotateVertical( gCtx, -ad.y / 6 ) ;
-        frameFX_rotateHorizontal( gCtx, ad.x / 7 ) ;
-      }
+      if ( !ad.did_vibrate ) frameFX_rotate( gCtx, ad.x / 7, -ad.y / 6 ) ;
       break ;
 
     case 1:
@@ -82,7 +79,7 @@ accel_data_service_handler
 { }
 
 
-static void
+void
 mainWindow_load
 ( Window *window )
 { window_set_background_color( window, GColorBlack ) ;
@@ -100,7 +97,7 @@ mainWindow_load
 }
 
 
-static void
+void
 mainWindow_unload
 ( Window *window )
 { app_timer_cancel( updateTimer ) ;          // Stop animation.
@@ -109,7 +106,7 @@ mainWindow_unload
 }
 
 
-static void
+void
 app_init
 ( void )
 { mainWindow = window_create( ) ;
@@ -126,7 +123,7 @@ app_init
 }
 
 
-static void
+void
 app_deinit
 ( void )
 { window_stack_remove( mainWindow, false ) ;

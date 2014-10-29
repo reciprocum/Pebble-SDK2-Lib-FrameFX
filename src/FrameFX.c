@@ -3,8 +3,9 @@
 #include <pebble.h>
 
 
+// Fill with random generated patterns. Half-word wise variant because rand() only generates 31 bits of random data at a time.
 void
-frameFX_fillRand    // Fill with random generated patterns, Half-word wise variant because rand() only generates 31 bits of random data at a time.
+frameFX_fillRand
 ( GContext *gCtx )
 { GBitmap *bitMap = graphics_capture_frame_buffer( gCtx ) ;
   if (bitMap == NULL) return ;
@@ -17,6 +18,7 @@ frameFX_fillRand    // Fill with random generated patterns, Half-word wise varia
 }
 
 
+// Black pixels turn white, white pixels turn black.
 void
 frameFX_invert
 ( GContext *gCtx )
@@ -85,7 +87,7 @@ frameFX_rotateVertical
 
 
 void
-frameFX_rotateHorizontal    // NOT YET fully implemented.
+frameFX_rotateHorizontal
 ( GContext *gCtx
 , int16_t   rotation        // Negative rotation is leftwards, positive is rightwards.
 )
@@ -134,6 +136,17 @@ frameFX_rotateHorizontal    // NOT YET fully implemented.
   }
 
   graphics_release_frame_buffer( gCtx, bitMap ) ;
+}
+
+
+void
+frameFX_rotate
+( GContext *gCtx
+, int16_t   horizontal       // Negative is leftwards, positive is rightwards.
+, int16_t   vertical         // Negative is upwards, positive is downwards.
+)
+{ frameFX_rotateHorizontal( gCtx, vertical ) ;
+  frameFX_rotateVertical( gCtx, vertical ) ;
 }
 
 

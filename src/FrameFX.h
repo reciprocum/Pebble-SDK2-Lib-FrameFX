@@ -22,3 +22,10 @@ void frameFX_rotateVertical( GContext *gCtx, int16_t rotation ) ;
 
 // Negative rotation is leftwards, positive is rightwards.
 void frameFX_rotateHorizontal( GContext *gCtx, int16_t rotation ) ;
+
+void
+frameFX_rotate
+( GContext *gCtx
+, int16_t   horizontal       // Negative is leftwards, positive is rightwards.
+, int16_t   vertical         // Negative is upwards, positive is downwards.
+) ;
