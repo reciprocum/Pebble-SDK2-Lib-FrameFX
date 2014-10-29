@@ -3,56 +3,41 @@
 #include <pebble.h>
 
 
+/*** GBitmap functions ***/
+
 // Fill with random generated patterns. Half-word wise variant because rand() only generates 31 bits of random data at a time.
 void
-frameFX_fillRand
-( GContext *gCtx )
-{ GBitmap *bitMap = graphics_capture_frame_buffer( gCtx ) ;
-  if (bitMap == NULL) return ;
-
-  uint16_t *ptrFrameBufferHalfWord = (uint16_t *)bitMap->addr ;
+frameFX_GBitmap_fillRand
+( GBitmap *bitMap )
+{ uint16_t *ptrFrameBufferHalfWord = (uint16_t *)bitMap->addr ;
   uint16_t numHalfWords = bitMap->bounds.size.h * (bitMap->row_size_bytes >> 1) ;
   for( uint16_t iHalfWord = 0  ;  iHalfWord < numHalfWords  ;  ++iHalfWord ) *ptrFrameBufferHalfWord++ = rand( ) ;
-
-  graphics_release_frame_buffer( gCtx, bitMap ) ;
 }
 
 
 // Black pixels turn white, white pixels turn black.
 void
-frameFX_invert
-( GContext *gCtx )
-{ GBitmap *bitMap = graphics_capture_frame_buffer( gCtx ) ;
-  if (bitMap == NULL) return ;
-
-  uint32_t *ptrFrameBufferWord = (uint32_t *)bitMap->addr ;
+frameFX_GBitmap_invert
+( GBitmap *bitMap )
+{ uint32_t *ptrFrameBufferWord = (uint32_t *)bitMap->addr ;
   uint16_t numWords = bitMap->bounds.size.h * (bitMap->row_size_bytes >> 2) ;
 
   for( uint16_t iWord = 0  ;  iWord < numWords  ;  ++iWord )
   { uint32_t frameBufferWord = *ptrFrameBufferWord ;
     *ptrFrameBufferWord++ = ~frameBufferWord ;
   }
-
-  graphics_release_frame_buffer( gCtx, bitMap ) ;
 }
 
 
 void
-frameFX_rotateVertical
-( GContext *gCtx
-, int16_t   rotation        // Negative rotation is upwards, positive is downwards.
+frameFX_GBitmap_rotateVertical
+( GBitmap *bitMap
+, int16_t  rotation        // Negative rotation is upwards, positive is downwards.
 )
-{ GBitmap *bitMap = graphics_capture_frame_buffer( gCtx ) ;
-  if (bitMap == NULL) return ;
-
-  uint16_t absRotation = rotation < 0 ? -rotation  : rotation ;
+{ uint16_t absRotation = rotation < 0 ? -rotation  : rotation ;
   uint16_t numRows = bitMap->bounds.size.h ;
-  if (absRotation >= numRows) absRotation %= numRows ;    // numRows == 1  will cause absRotation == 0
-
-  if (absRotation == 0)
-  { graphics_release_frame_buffer( gCtx, bitMap ) ;
-    return ;  // Nothing to do.
-  }
+  if (absRotation >= numRows) absRotation %= numRows ;                              // numRows == 1  will cause absRotation == 0
+  if (absRotation == 0) return ;                                                    // Nothing to do.
 
   uint16_t rowSpanWords = bitMap->row_size_bytes >> 2 ;
   uint32_t *ptrFrameBufferBase = (uint32_t *)bitMap->addr ;
@@ -81,29 +66,19 @@ frameFX_rotateVertical
       if (++srcRowIdx == numRows) srcRowIdx = 0 ;     // Advance (and wrap around) source row index to next row.
     }
   }
-
-  graphics_release_frame_buffer( gCtx, bitMap ) ;
 }
 
 
 void
-frameFX_rotateHorizontal
-( GContext *gCtx
-, int16_t   rotation        // Negative rotation is leftwards, positive is rightwards.
+frameFX_GBitmap_rotateHorizontal
+( GBitmap *bitMap
+, int16_t  rotation        // Negative rotation is leftwards, positive is rightwards.
 )
-{ GBitmap *bitMap = graphics_capture_frame_buffer( gCtx ) ;
-  if (bitMap == NULL) return ;
-
-  uint16_t absRotation = rotation < 0 ? -rotation : rotation ;
-  uint16_t rowSizeBits = bitMap->bounds.size.w ;
+{ uint16_t absRotation = rotation < 0 ? -rotation : rotation ;
+  uint16_t rowSizeBits = bitMap->bounds.size.w -1 ;               // Not quite clear why bounds reported width is 1 bit bigger than the actual image.
   if (absRotation >= rowSizeBits) absRotation %= rowSizeBits ;    // rowSizeBits == 1  will cause absRotation == 0
-
-  if (absRotation == 0)
-  { graphics_release_frame_buffer( gCtx, bitMap ) ;
-    return ;  // Nothing to do.
-  }
-
-  if (rotation < 0)  absRotation = rowSizeBits - absRotation ;  // Convert a left rotation into an equivalent right rotation.
+  if (absRotation == 0) return ;                                  // Nothing to do.
+  if (rotation < 0) absRotation = rowSizeBits - absRotation ;     // Convert a left rotation into an equivalent right rotation.
 
   uint16_t numRows         = bitMap->bounds.size.h ;
   uint16_t rowSizeBytes    = bitMap->row_size_bytes ;
@@ -134,30 +109,25 @@ frameFX_rotateHorizontal
   
     ptrRowLeftmostByte += rowSizeBytes ;  // Advance one row down.
   }
-
-  graphics_release_frame_buffer( gCtx, bitMap ) ;
 }
 
 
 void
-frameFX_rotate
-( GContext *gCtx
-, int16_t   horizontal       // Negative is leftwards, positive is rightwards.
-, int16_t   vertical         // Negative is upwards, positive is downwards.
+frameFX_GBitmap_rotate
+( GBitmap *bitMap
+, int16_t  horizontal       // Negative is leftwards, positive is rightwards.
+, int16_t  vertical         // Negative is upwards, positive is downwards.
 )
-{ frameFX_rotateHorizontal( gCtx, vertical ) ;
-  frameFX_rotateVertical( gCtx, vertical ) ;
+{ frameFX_GBitmap_rotateHorizontal( bitMap, horizontal ) ;
+  frameFX_GBitmap_rotateVertical( bitMap, vertical ) ;
 }
 
 
 // Mirror image.
 void
-frameFX_flipVertical
-( GContext *gCtx )
-{ GBitmap *bitMap = graphics_capture_frame_buffer( gCtx ) ;
-  if (bitMap == NULL) return ;
-
-  uint16_t numRows      = bitMap->bounds.size.h ;
+frameFX_GBitmap_flipVertical
+( GBitmap *bitMap )
+{ uint16_t numRows      = bitMap->bounds.size.h ;
   uint16_t rowSizeBytes = bitMap->row_size_bytes ;
 
   uint8_t *ptrLeftmostByte = (uint8_t *)bitMap->addr - 1 ;    // The "-1" is required due to a bug on the bitMap->addr value that points 1 byte too far inside the frame buffer.
@@ -190,26 +160,20 @@ frameFX_flipVertical
 
     ptrLeftmostByte += rowSizeBytes ;  // Advance one row down.
   }
- 
-  graphics_release_frame_buffer( gCtx, bitMap ) ;
 }
 
 
 // Image is turned upside down.
 void
-frameFX_flipHorizontal
-( GContext *gCtx )
-{ GBitmap *bitMap = graphics_capture_frame_buffer( gCtx ) ;
-  if (bitMap == NULL) return ;
-
-  uint32_t *ptrFrameBufferBase = (uint32_t *)bitMap->addr ;
-
+frameFX_GBitmap_flipHorizontal
+( GBitmap *bitMap )
+{ uint32_t *ptrFrameBufferBase = (uint32_t *)bitMap->addr ;
   uint16_t rowSpanWords = bitMap->row_size_bytes >> 2 ;
   uint16_t colSpanWords = (bitMap->bounds.size.h - 1) * rowSpanWords ;
 
   // Iterate word columns.
-  for( uint16_t iCol = 0  ;  iCol < rowSpanWords  ;  ++iCol )
-  { uint32_t *ptrTopColWord    = ptrFrameBufferBase + iCol ;
+  for( uint16_t rowOffset = 0  ;  rowOffset < rowSpanWords  ;  ++rowOffset )
+  { uint32_t *ptrTopColWord    = ptrFrameBufferBase + rowOffset ;
     uint32_t *ptrBottomColWord = ptrTopColWord + colSpanWords ;
 
     while (ptrTopColWord < ptrBottomColWord)
@@ -218,6 +182,77 @@ frameFX_flipHorizontal
       ptrBottomColWord -= rowSpanWords ;
     }
   }
+}
 
+
+/*** GContext functions ***/
+
+void
+frameFX_fillRand
+( GContext *gCtx )
+{ GBitmap *bitMap = graphics_capture_frame_buffer( gCtx ) ;
+  if (bitMap == NULL) return ;
+  frameFX_GBitmap_fillRand( bitMap ) ;
+  graphics_release_frame_buffer( gCtx, bitMap ) ;
+}
+
+void
+frameFX_invert
+( GContext *gCtx )
+{ GBitmap *bitMap = graphics_capture_frame_buffer( gCtx ) ;
+  if (bitMap == NULL) return ;
+  frameFX_GBitmap_invert( bitMap ) ;
+  graphics_release_frame_buffer( gCtx, bitMap ) ;
+}
+
+void
+frameFX_rotateVertical
+( GContext *gCtx
+, int16_t   rotation        // Negative rotation is upwards, positive is downwards.
+)
+{ GBitmap *bitMap = graphics_capture_frame_buffer( gCtx ) ;
+  if (bitMap == NULL) return ;
+  frameFX_GBitmap_rotateVertical( bitMap, rotation ) ;
+  graphics_release_frame_buffer( gCtx, bitMap ) ;
+}
+
+void
+frameFX_rotateHorizontal
+( GContext *gCtx
+, int16_t   rotation        // Negative rotation is leftwards, positive is rightwards.
+)
+{ GBitmap *bitMap = graphics_capture_frame_buffer( gCtx ) ;
+  if (bitMap == NULL) return ;
+  frameFX_GBitmap_rotateHorizontal( bitMap, rotation ) ;
+  graphics_release_frame_buffer( gCtx, bitMap ) ;
+}
+
+void
+frameFX_rotate
+( GContext *gCtx
+, int16_t   horizontal       // Negative is leftwards, positive is rightwards.
+, int16_t   vertical         // Negative is upwards, positive is downwards.
+)
+{ GBitmap *bitMap = graphics_capture_frame_buffer( gCtx ) ;
+  if (bitMap == NULL) return ;
+  frameFX_GBitmap_rotate( bitMap, horizontal, vertical ) ;
+  graphics_release_frame_buffer( gCtx, bitMap ) ;
+}
+
+void
+frameFX_flipVertical
+( GContext *gCtx )
+{ GBitmap *bitMap = graphics_capture_frame_buffer( gCtx ) ;
+  if (bitMap == NULL) return ;
+  frameFX_GBitmap_flipVertical( bitMap ) ;
+  graphics_release_frame_buffer( gCtx, bitMap ) ;
+}
+
+void
+frameFX_flipHorizontal
+( GContext *gCtx )
+{ GBitmap *bitMap = graphics_capture_frame_buffer( gCtx ) ;
+  if (bitMap == NULL) return ;
+  frameFX_GBitmap_flipHorizontal( bitMap ) ;
   graphics_release_frame_buffer( gCtx, bitMap ) ;
 }
